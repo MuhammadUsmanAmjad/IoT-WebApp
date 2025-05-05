@@ -11,6 +11,7 @@ const App = () => {
   const [pm25, setPm25] = useState(0);
   const [temp, setTemp] = useState(0);
   const [humidity, setHumidity] = useState(0);
+  const [fan, setFan] = useState(0);
   const [pm25Data, setPm25Data] = useState([]);
   const [connectionStatus, setConnectionStatus] = useState('Disconnected');
 
@@ -39,6 +40,7 @@ const App = () => {
       pm25: 0,
       temp: 0,
       humidity: 0,
+      fan: 0,
     };
 
     client.on('connect', () => {
@@ -49,6 +51,7 @@ const App = () => {
         'enviroscan/pm25',
         'enviroscan/temp',
         'enviroscan/humidity',
+        'enviroscan/fan',
       ], (err) => {
         if (err) {
           console.error('Subscription error:', err);
@@ -76,6 +79,9 @@ const App = () => {
         case 'enviroscan/humidity':
           latestData.humidity = parseFloat(value);
           break;
+        case 'enviroscan/fan':
+          latestData.humidity = parseFloat(value);
+          break;  
         default:
           break;
       }
@@ -125,21 +131,44 @@ const App = () => {
   };
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold">EnviroScan Dashboard</h1>
-      <p className={connectionStatus === 'Connected' ? 'text-green-600' : 'text-red-600'}>
-        Connection Status: {connectionStatus}
-      </p>
-      <div className="grid grid-cols-2 gap-4 mt-4">
-        <p>CO2: {co2} ppm</p>
-        <p>PM2.5: {pm25} µg/m³</p>
-        <p>Temperature: {temp} °C</p>
-        <p>Humidity: {humidity} %</p>
-      </div>
-      <div className="mt-4" style={{ width: '500px' }}>
-        <Line data={chartData} />
-      </div>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+  <div className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl p-6 mx-4">
+    <h1 className="text-2xl font-semibold text-center text-gray-800 mb-4 flex items-center justify-center gap-2">🌱 EnviroScan Dashboard</h1>
+    <p className={`text-center text-sm font-medium mb-6 ${connectionStatus === 'Connected' ? 'text-green-500' : 'text-red-500'}`}>🔌 Connection Status: {connectionStatus}</p>
+
+    <div className="card bg-white rounded-xl shadow-lg p-4">
+      <table className="w-full text-center border-separate border-spacing-y-2">
+        <thead>
+          <tr>
+            <th className="text-sm font-semibold text-gray-600 py-2 px-4">Icons</th>
+            <th className="text-sm font-semibold text-gray-600 py-2 px-4">Sensor</th>
+            <th className="text-sm font-semibold text-gray-600 py-2 px-4">Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          {[
+            { name: "CO2", value: `${co2} ppm`, icon: "https://img.icons8.com/color/48/air-quality.png", bg: "bg-blue-50" },
+            { name: "PM2.5", value: `${pm25} µg/m³`, icon: "https://img.icons8.com/color/48/dust.png", bg: "bg-gray-50" },
+            { name: "Temperature", value: `${temp} °C`, icon: "https://img.icons8.com/color/48/temperature--v1.png", bg: "bg-red-50" },
+            { name: "Humidity", value: `${humidity} %`, icon: "https://img.icons8.com/color/48/hygrometer.png", bg: "bg-blue-100" },
+            { name: "Fan", value: fan === 1 ? "On" : "Off", icon: "https://img.icons8.com/color/48/fan.png", bg: "bg-gray-100" },
+          ].map((sensor, idx) => (
+            <tr key={idx} className={`${sensor.bg} rounded-lg hover:bg-opacity-80 transition`}>
+              <td className="py-2 px-4"><img src={sensor.icon} alt={sensor.name} className="w-6 h-6 mx-auto" /></td>
+              <td className="py-2 px-4 text-sm font-medium text-gray-700">{sensor.name}</td>
+              <td className="py-2 px-4 text-sm font-medium text-gray-700">{sensor.value}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
+
+    <div className="mt-6">
+      <h2 className="text-lg font-semibold text-center text-gray-800 mb-10 flex justify-center items-center gap-2">📊 PM2.5 Trend</h2>
+      <div className="max-w-md mx-auto" style={{ width: "500px" }}><Line data={chartData} /></div>
+    </div>
+  </div>
+</div>
   );
 };
 
